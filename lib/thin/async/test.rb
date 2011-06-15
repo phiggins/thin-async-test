@@ -5,6 +5,7 @@ module Thin
   module Async
     class Test
       VERSION = '1.0.0'
+
       class Callback
         attr_reader :status, :headers, :body
 
@@ -24,10 +25,16 @@ module Thin
       def call(env)
         callback = Callback.new
         env.merge! 'async.callback' => callback
+
         EM.run do
           result = @app.call(env)
           
-          return result unless result == Thin::AsyncResponse::Marker
+          EM.next_tick do
+            unless result == Thin::AsyncResponse::Marker
+              EM.stop
+              return result
+            end
+          end
         end
 
         [callback.status, callback.headers, callback.body]

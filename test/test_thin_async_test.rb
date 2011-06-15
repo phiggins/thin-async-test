@@ -14,7 +14,7 @@ TestApp = lambda do |env|
 
     response << BODY
 
-    EM.add_timer(0.1) do
+    EM.next_tick do
       response << BODY
 
       response.done
@@ -45,5 +45,14 @@ describe Thin::Async::Test do
     assert_equal STATUS,  last_response.status
     assert_equal "bar",   last_response.headers["X-Foo"]
     assert_equal BODY*2,  last_response.body
+  end
+
+  it "doesn't hog the reactor's time" do
+    foo = nil
+    EM.next_tick { foo = "bar" }
+
+    get "/sync"
+    
+    assert_equal "bar", foo
   end
 end
