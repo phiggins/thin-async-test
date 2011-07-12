@@ -29,8 +29,8 @@ module Thin
         EM.run do
           result = @app.call(env)
           
-          EM.next_tick do
-            unless result == Thin::AsyncResponse::Marker
+          unless result == Thin::AsyncResponse::Marker
+            EM.next_tick do
               EM.stop
               return result
             end
